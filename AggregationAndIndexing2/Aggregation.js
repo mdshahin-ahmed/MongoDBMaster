@@ -169,5 +169,28 @@ db.test.aggregate([
   },
 ]);
 
-//
-//
+//  aggregation $lookup
+db.orders.aggregate([
+  {
+    $lookup: {
+      from: "test", // "<collection to join>",
+      localField: "userId", // "<field from the input documents>",
+      foreignField: "_id", // "<field from the documents of the from collection>",
+      as: "user", // "<output array field name>"
+    },
+  },
+]);
+
+// indexing by creating index we can decrease fetching time -> createIndex
+db.getCollection("massive-data").createIndex({ email: 1 });
+
+// we can delete indexing -> dropIndex
+db.getCollection("massive-data").dropIndex({ email: 1 });
+
+// for searching we can create "text" indexing
+db.getCollection("massive-data").createIndex({ about: "text" }); // should "text"
+
+// text indexing
+db.getCollection("massive-data")
+  .find({ $text: { $search: "dolor" } })
+  .project({ about: 1 }); // "dolor" which text we want to search
