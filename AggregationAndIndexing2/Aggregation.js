@@ -79,3 +79,92 @@ db.test.aggregate([
     },
   },
 ]);
+
+// all doc in a single group
+db.test.aggregate([
+  {
+    $group: {
+      _id: null, // null mean all doc in a single group
+      totalSalary: { $sum: "$salary" },
+      maxSalary: { $max: "$salary" },
+      minSalary: { $min: "$salary" },
+      avgSalary: { $avg: "$salary" },
+    },
+  },
+]);
+
+// rename and calculate inside project
+db.test.aggregate([
+  {
+    $group: {
+      _id: null,
+      totalSalary: { $sum: "$salary" },
+      maxSalary: { $max: "$salary" },
+      minSalary: { $min: "$salary" },
+      avgSalary: { $avg: "$salary" },
+    },
+  },
+  // stage - 2
+  {
+    $project: {
+      totalSalary: 1,
+      maxSalary: 1,
+      minSalary: 1,
+      averageSalary: "$avgSalary",
+      rangeBtwnMaxAndMin: { $subtract: ["$maxSalary", "$minSalary"] },
+    },
+  },
+]);
+
+// aggregation for array $unwind
+
+db.test.aggregate([
+  { $unwind: "$friends" }, // we can break it depend on array value
+  { $group: { _id: "$friends", total: { $sum: 1 } } },
+]);
+
+// we can break particular array and grouped by another field
+db.test.aggregate([
+  { $unwind: "$interests" },
+  { $group: { _id: "$age", ageWiseInterest: { $push: "$interests" } } },
+]);
+
+// $bucket
+db.test.aggregate([
+  {
+    $bucket: {
+      groupBy: "$age",
+      boundaries: [20, 40, 60],
+      default: "bakiGula",
+      output: {
+        count: { $sum: 1 },
+        user: { $push: "$$ROOT" },
+      },
+    },
+  },
+  { $sort: { count: 1 } },
+  { $limit: 2 },
+  { $project: { count: 1 } },
+]);
+
+// multiple pipeline $facet
+db.test.aggregate([
+  {
+    $facet: {
+      // pipeline -> 1
+      friendsCount: [
+        //state -> 1
+        { $unwind: "$friends" },
+        // state -> 2
+        { $group: { _id: "$friends", count: { $sum: 1 } } },
+      ],
+      // pipeline -> 2
+      interestCount: [
+        // state -> 1
+        { $unwind: "$education" },
+        // state -> 2
+        { $group: { _id: "$education", count: { $sum: 1 } } },
+      ],
+    },
+  },
+]);
