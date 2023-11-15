@@ -27,3 +27,21 @@ db.users.aggregate([
     },
   },
 ]);
+
+// 2. Calculate the average price for each product category. Display the category and average price.
+
+// $round decimal digit -> After decimal how many digit we want to show
+db.products.aggregate([
+  // state -> 1
+  // $group -> group by category
+  {
+    $group: { _id: "$category", averagePrice: { $avg: "$price" } },
+  },
+  // stage -> 2
+  {
+    $project: {
+      category: "$_id",
+      average: { $round: ["$averagePrice", 2] },
+    },
+  },
+]);
