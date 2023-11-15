@@ -45,3 +45,5 @@ db.products.aggregate([
     },
   },
 ]);
+
+// 3. Find the average order quantity and price for each product category. Display the category, average quantity, and average price.
